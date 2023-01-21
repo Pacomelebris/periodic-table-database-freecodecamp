@@ -2,6 +2,9 @@
 
 PSQL="psql -X --username=freecodecamp --dbname=periodic_table --tuples-only -c"
 
+unset ATOMIC_NUMBER_FOUND
+COUNT=0
+
 #if there is no argument
 if [[ -z $1 ]]
 then
@@ -15,14 +18,15 @@ else
     if [[ $1 == $ATOMIC_NUMBER || $1 == $SYMBOL || $1 == $NAME ]]
     then
       #if found
-      #get all the info about the element
-      ATOMIC_NUMBER=$($PSQL "SELECT atomic_number FROM elements WHERE atomic_number = $ATOMIC_NUMBER OR symbol = '$SYMBOL' OR name = '$NAME'")
-      ELEMENT_NAME=$($PSQL "SELECT name FROM elements WHERE atomic_number = $ATOMIC_NUMBER")
-      ELEMENT_SYMBOL=$($PSQL "SELECT symbol FROM elements WHERE atomic_number = $ATOMIC_NUMBER")
-      ELEMENT_TYPE=$($PSQL "SELECT type FROM properties WHERE atomic_number = $ATOMIC_NUMBER")
-      ELEMENT_ATOMIC_MASS=$($PSQL "SELECT atomic_mass FROM properties WHERE atomic_number = $ATOMIC_NUMBER")
-      ELEMENT_MELTING_POINT=$($PSQL "SELECT melting_point_celsius FROM properties WHERE atomic_number = $ATOMIC_NUMBER")
-      ELEMENT_BOILING_POINT=$($PSQL "SELECT boiling_point_celsius FROM properties WHERE atomic_number = $ATOMIC_NUMBER")
+      #get the atomic number
+      ATOMIC_NUMBER_FOUND=$($PSQL "SELECT atomic_number FROM elements WHERE atomic_number = $ATOMIC_NUMBER OR symbol = '$SYMBOL' OR name = '$NAME'")
+      #output if element found
+      ELEMENT_NAME=$($PSQL "SELECT name FROM elements WHERE atomic_number = $ATOMIC_NUMBER_FOUND")
+      ELEMENT_SYMBOL=$($PSQL "SELECT symbol FROM elements WHERE atomic_number = $ATOMIC_NUMBER_FOUND")
+      ELEMENT_TYPE=$($PSQL "SELECT type FROM properties WHERE atomic_number = $ATOMIC_NUMBER_FOUND")
+      ELEMENT_ATOMIC_MASS=$($PSQL "SELECT atomic_mass FROM properties WHERE atomic_number = $ATOMIC_NUMBER_FOUND")
+      ELEMENT_MELTING_POINT=$($PSQL "SELECT melting_point_celsius FROM properties WHERE atomic_number = $ATOMIC_NUMBER_FOUND")
+      ELEMENT_BOILING_POINT=$($PSQL "SELECT boiling_point_celsius FROM properties WHERE atomic_number = $ATOMIC_NUMBER_FOUND")
 
       #format the infos
       ATOMIC_NUMBER=$(echo $ATOMIC_NUMBER | sed -r 's/^ *| *$//g')
@@ -35,7 +39,19 @@ else
       
       #print info about this element 
       echo "The element with atomic number $ATOMIC_NUMBER is $ELEMENT_NAME ($ELEMENT_SYMBOL). It's a $ELEMENT_TYPE, with a mass of $ELEMENT_ATOMIC_MASS amu. $ELEMENT_NAME has a melting point of $ELEMENT_MELTING_POINT celsius and a boiling point of $ELEMENT_BOILING_POINT celsius."
-    fi 
+      break
+    
+    else 
+      #if the element not found in the DB
+      ((COUNT++))
+      if [[ COUNT -eq 11 ]]
+      then 
+        echo "I could not find that element in the database."
+      fi
+    fi
+    
   done
 fi
 
+
+ 
