@@ -2,9 +2,7 @@
 
 PSQL="psql -X --username=freecodecamp --dbname=periodic_table --tuples-only -c"
 
-unset ATOMIC_NUMBER_FOUND
 COUNT=0
-
 #if there is no argument
 if [[ -z $1 ]]
 then
